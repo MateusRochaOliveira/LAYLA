@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/png/layla-logo-white-bg.png" alt="LAYLA Logo" width="380"/>
+  <img src="assets/brand/png/layla-logo-navy-white-bg.png" alt="LAYLA Logo" width="380"/>
 </p>
 
 <h1 align="center">LAYLA</h1>
