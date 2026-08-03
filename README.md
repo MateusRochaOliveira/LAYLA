@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/vector/layla-logo-navy.svg" alt="LAYLA Logo" width="380"/>
+  <img src="assets/brand/png/layla-logo-white-bg.png" alt="LAYLA Logo" width="380"/>
 </p>
 
 <h1 align="center">LAYLA</h1>
@@ -17,7 +17,11 @@
 > 🚧 **Work in Progress:** This project is currently in its initial stage of development.
 
 ## 🎨 Brand Assets
-All official logos and brand files are available in the [`assets/brand/`](./assets/brand/) directory.
+All official logos, icons, vector files, and print materials are available in the [`assets/brand/`](./assets/brand/) directory:
+
+- 🖼️ **PNG (Raster):** [`assets/brand/png/`](./assets/brand/png/)
+- 📐 **Vector (SVG):** [`assets/brand/vector/`](./assets/brand/vector/)
+- 🖨️ **Print Assets:** [`assets/brand/print/`](./assets/brand/print/)
 
 ## 📄 License
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
