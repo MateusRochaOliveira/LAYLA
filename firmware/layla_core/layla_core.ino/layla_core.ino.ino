@@ -3,7 +3,7 @@
  * @brief LAYLA — Core Embedded Firmware
  * @details Deterministic real-time digital level algorithm featuring IRAM execution,
  *          hardware DLPF, N=5 median filtering, 20 Hz decimated BLE telemetry,
- *          and strict zero dynamic memory allocation.
+ *          180-degree 2-pass zero calibration endpoint via BLE, and strict zero dynamic memory allocation.
  * @target ESP32 / MPU6050 / Buzzer (GPIO25)
  */
 
@@ -46,6 +46,12 @@ typedef struct {
   float ay_offset;
   float az_offset;
 } CalibrationOffsets;
+
+// Temporary buffers for 2-pass 180-degree calibration
+typedef struct {
+  float ax_posA, ay_posA, az_posA;
+  bool posA_valid;
+} CalibrationState;
 
 // ============================================================================
 // 3. RING BUFFER STRUCTURE (O(1) STATIC MEMORY)
@@ -97,6 +103,7 @@ float IRAM_ATTR apply_median_filter(StaticRingBuffer *buf) {
 // ============================================================================
 static TelemetryPacket currentPacket;
 static CalibrationOffsets offsets = {0.0f, 0.0f, 0.0f};
+static CalibrationState calState = {0.0f, 0.0f, 0.0f, false};
 static Preferences preferences;
 
 static StaticRingBuffer pitchBuffer = {{0}, 0, 0};
@@ -110,8 +117,61 @@ static uint8_t bleDecimator = 0; // Decimator to send BLE telemetry at 20 Hz (10
 
 static bool isPerfectLevel = false;
 
+// Forward Declarations
+bool read_accel_raw(int16_t *pAx, int16_t *pAy, int16_t *pAz);
+void saveCalibration(float ax, float ay, float az);
+
 // ============================================================================
-// 6. STATIC BLE CALLBACKS (ZERO HEAP)
+// 6. 180-DEGREE ZERO CALIBRATION LOGIC
+// ============================================================================
+void captureCalibrationPass(uint8_t pass) {
+  int32_t sumX = 0, sumY = 0, sumZ = 0;
+  constexpr uint8_t SAMPLES = 64;
+
+  for (uint8_t i = 0; i < SAMPLES; i++) {
+    int16_t rx, ry, rz;
+    if (read_accel_raw(&rx, &ry, &rz)) {
+      sumX += rx;
+      sumY += ry;
+      sumZ += rz;
+    }
+    delay(5);
+  }
+
+  const float avgX = (sumX / static_cast<float>(SAMPLES)) * ACCEL_SCALE_FACTOR;
+  const float avgY = (sumY / static_cast<float>(SAMPLES)) * ACCEL_SCALE_FACTOR;
+  const float avgZ = (sumZ / static_cast<float>(SAMPLES)) * ACCEL_SCALE_FACTOR;
+
+  if (pass == 1) {
+    calState.ax_posA = avgX;
+    calState.ay_posA = avgY;
+    calState.az_posA = avgZ;
+    calState.posA_valid = true;
+
+    // Single beep for Pass 1 registered
+    ledcWrite(PIN_BUZZER, 128); delay(100);
+    ledcWrite(PIN_BUZZER, 0);
+  } else if (pass == 2 && calState.posA_valid) {
+    // 180-degree average calculation cancels out surface inclination error:
+    // Offset = (ReadingA + ReadingB) / 2
+    const float finalAxOffset = (calState.ax_posA + avgX) / 2.0f;
+    const float finalAyOffset = (calState.ay_posA + avgY) / 2.0f;
+    // For Z axis, gravity (+1g) is preserved
+    const float finalAzOffset = ((calState.az_posA + avgZ) / 2.0f) - 1.0f;
+
+    saveCalibration(finalAxOffset, finalAyOffset, finalAzOffset);
+    calState.posA_valid = false;
+
+    // Double success beep for calibration complete
+    for (uint8_t i = 0; i < 2; i++) {
+      ledcWrite(PIN_BUZZER, 128); delay(100);
+      ledcWrite(PIN_BUZZER, 0);   delay(100);
+    }
+  }
+}
+
+// ============================================================================
+// 7. STATIC BLE CALLBACKS (ZERO HEAP)
 // ============================================================================
 class ServerCallbacks : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer* pServer) override {
@@ -123,10 +183,27 @@ class ServerCallbacks : public NimBLEServerCallbacks {
   }
 };
 
-static ServerCallbacks serverCallbacks; // Allocated in BSS segment
+class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+  void onWrite(NimBLECharacteristic* pChar) override {
+    std::string val = pChar->getValue();
+    if (val.length() > 0) {
+      const char cmd = val[0];
+      if (cmd == '1') {
+        captureCalibrationPass(1); // Position A
+      } else if (cmd == '2') {
+        captureCalibrationPass(2); // Position B (180 deg)
+      } else if (cmd == 'R') {
+        saveCalibration(0.0f, 0.0f, 0.0f); // Reset offsets
+      }
+    }
+  }
+};
+
+static ServerCallbacks serverCallbacks;             // BSS Segment
+static CharacteristicCallbacks charCallbacks;       // BSS Segment
 
 // ============================================================================
-// 7. INLINED 2D FUZZY ENGINE WITH ANTI-JITTER HYSTERESIS
+// 8. INLINED 2D FUZZY ENGINE WITH ANTI-JITTER HYSTERESIS
 // ============================================================================
 inline float IRAM_ATTR calculateFuzzy2D(float maxErrorDeg) __attribute__((always_inline));
 
@@ -145,13 +222,25 @@ float calculateFuzzy2D(float maxErrorDeg) {
 }
 
 // ============================================================================
-// 8. INITIALIZATION FUNCTIONS
+// 9. INITIALIZATION & NVS FUNCTIONS
 // ============================================================================
 void loadCalibration() {
   preferences.begin("layla_cal", true);
   offsets.ax_offset = preferences.getFloat("ax", 0.0f);
   offsets.ay_offset = preferences.getFloat("ay", 0.0f);
   offsets.az_offset = preferences.getFloat("az", 0.0f);
+  preferences.end();
+}
+
+void saveCalibration(float ax, float ay, float az) {
+  offsets.ax_offset = ax;
+  offsets.ay_offset = ay;
+  offsets.az_offset = az;
+
+  preferences.begin("layla_cal", false);
+  preferences.putFloat("ax", ax);
+  preferences.putFloat("ay", ay);
+  preferences.putFloat("az", az);
   preferences.end();
 }
 
@@ -183,14 +272,15 @@ void initNimBLE() {
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
 
   NimBLEServer* pServer = NimBLEDevice::createServer();
-  pServer->setServerCallbacks(&serverCallbacks); // Static instance without `new`
+  pServer->setServerCallbacks(&serverCallbacks);
 
   NimBLEService* pService = pServer->createService(SERVICE_UUID);
   pCharacteristic = pService->createCharacteristic(
     CHARACTERISTIC_UUID,
-    NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::WRITE
   );
 
+  pCharacteristic->setCallbacks(&charCallbacks);
   pService->start();
 
   NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
@@ -221,7 +311,7 @@ bool IRAM_ATTR read_accel_raw(int16_t *pAx, int16_t *pAy, int16_t *pAz) {
 }
 
 // ============================================================================
-// 9. SETUP (COMPATIBLE WITH ESP32 CORE v2 & v3)
+// 10. SETUP (COMPATIBLE WITH ESP32 CORE v2 & v3)
 // ============================================================================
 void setup() {
   setCpuFrequencyMhz(80);
@@ -264,7 +354,7 @@ void setup() {
 }
 
 // ============================================================================
-// 10. DETERMINISTIC MAIN LOOP (100 Hz / DRIFT-FREE)
+// 11. DETERMINISTIC MAIN LOOP (100 Hz / DRIFT-FREE)
 // ============================================================================
 void loop() {
   esp_task_wdt_reset();
