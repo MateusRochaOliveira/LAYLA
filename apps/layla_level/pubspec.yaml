@@ -1,0 +1,54 @@
+name: layla_level
+description: "LAYLA - Slope and level measurement tool for engineering audits."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Path Provider (Device Directories)
+  path_provider: ^2.1.6
+
+  # BLE Connectivity & Sensors
+  flutter_reactive_ble: ^5.0.2
+
+  # Voice Module (TTS & Offline Vosk STT)
+  flutter_tts: ^3.8.3
+  vosk_flutter: ^0.3.0
+
+  # HTTP Client (Compatible with Vosk engine)
+  http: ^0.13.6
+
+  # PDF Generation & Sharing Engine
+  pdf: ^3.12.0
+  printing: ^5.14.3
+
+  # Icons & Date Formatting
+  cupertino_icons: ^1.0.6
+  intl: ^0.19.0
+
+  # SQLite Local Database
+  sqflite: ^2.3.0
+  path: ^1.9.0
+
+  # Camera & AR Overlay
+  camera: ^0.10.5+9
+  archive: ^3.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Mapeamento limpo utilizando os pacotes .zip dos modelos do Vosk
+  assets:
+    - assets/models/vosk_en.zip
+    - assets/models/vosk_pt.zip
