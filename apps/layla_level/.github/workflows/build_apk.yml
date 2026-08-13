@@ -26,16 +26,16 @@ jobs:
 
       - name: Get Flutter dependencies
         run: |
-          cd layla_level
+          cd apps/layla_level
           flutter pub get
 
       - name: Build Release APK
         run: |
-          cd layla_level
+          cd apps/layla_level
           flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: layla-app-release
-          path: layla_level/build/app/outputs/flutter-apk/app-release.apk
+          path: apps/layla_level/build/app/outputs/flutter-apk/app-release.apk
