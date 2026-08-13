@@ -2,7 +2,7 @@ name: Build LAYLA Release APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -10,31 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configurar Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configurar Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      - name: Entrar na pasta do Flutter e instalar dependências
+      - name: Get Flutter dependencies
         run: |
           cd layla_level
           flutter pub get
 
-      - name: Compilar APK Release
+      - name: Build Release APK
         run: |
           cd layla_level
           flutter build apk --release
 
-      - name: Salvar APK para Download
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: layla-app-release
