@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAYLA - Web Inclinometer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #121212;
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    header { text-align: center; margin-top: 10px; }
+    header h1 { font-size: 2rem; color: #00E676; letter-spacing: 2px; }
+    header p { font-size: 0.85rem; color: #888; }
+    
+    .status-badge {
+      margin-top: 10px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      background-color: #FF3D00;
+      color: #FFF;
+      transition: background-color 0.3s;
+    }
+    .status-badge.connected { background-color: #00E676; color: #000; }
+
+    .level-container {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border: 4px solid #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #1E1E1E 0%, #0A0A0A 100%);
+    }
+    .level-target {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 2px dashed #00E676;
+      border-radius: 50%;
+    }
+    .level-bubble {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      background-color: #00E676;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #00E676;
+      transition: transform 0.1s ease-out;
+    }
+    .level-bubble.critical { background-color: #FF3D00; box-shadow: 0 0 15px #FF3D00; }
+
+    .readings {
+      display: flex;
+      gap: 30px;
+      text-align: center;
+    }
+    .reading-card {
+      background-color: #1E1E1E;
+      padding: 15px 25px;
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+    .reading-card span { display: block; font-size: 0.75rem; color: #AAA; text-transform: uppercase; }
+    .reading-card div { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
+
+    .actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #2979FF;
+      color: #FFF;
+      transition: opacity 0.2s;
+    }
+    button:active { opacity: 0.8; }
+    button.secondary { background-color: #333; color: #CCC; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>LAYLA</h1>
+    <p>Hybrid Web-BLE Inclinometer System</p>
+    <div id="status" class="status-badge">Disconnected</div>
+  </header>
+
+  <div class="level-container">
+    <div class="level-target"></div>
+    <div id="bubble" class="level-bubble"></div>
+  </div>
+
+  <div class="readings">
+    <div class="reading-card">
+      <span>Pitch</span>
+      <div id="pitch-val">0.0°</div>
+    </div>
+    <div class="reading-card">
+      <span>Roll</span>
+      <div id="roll-val">0.0°</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="btn-connect" onclick="connectBLE()">Connect Actuator</button>
+    <button class="secondary" onclick="requestSensorPermission()">Calibrate / Start Sensors</button>
+  </div>
+
+  <script>
+    const SERVICE_UUID = "4fa12345-1234-1234-1234-123456789abc";
+    const CHARACTERISTIC_UUID = "beb54321-1234-1234-1234-123456789abc";
+
+    let bleCharacteristic = null;
+    let isConnected = false;
+    let lastSendTime = 0;
+    const CRITICAL_LIMIT = 15.0;
+
+    async function connectBLE() {
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ name: 'LAYLA_ACTUATOR' }],
+          optionalServices: [SERVICE_UUID]
+        });
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+        isConnected = true;
+        updateStatus(true);
+
+        device.addEventListener('gattserverdisconnected', () => {
+          isConnected = false;
+          updateStatus(false);
+        });
+
+        setInterval(sendHeartbeat, 1000);
+
+      } catch (error) {
+        console.error("BLE Error: ", error);
+        alert("Bluetooth connection failed: " + error.message);
+      }
+    }
+
+    function updateStatus(connected) {
+      const statusBadge = document.getElementById('status');
+      const connBtn = document.getElementById('btn-connect');
+      if (connected) {
+        statusBadge.innerText = "BLE Actuator Connected";
+        statusBadge.classList.add('connected');
+        connBtn.innerText = "Connected";
+        connBtn.style.backgroundColor = "#00E676";
+      } else {
+        statusBadge.innerText = "Disconnected";
+        statusBadge.classList.remove('connected');
+        connBtn.innerText = "Connect Actuator";
+        connBtn.style.backgroundColor = "#2979FF";
+      }
+    }
+
+    function requestSensorPermission() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            }
+          });
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    }
+
+    function handleOrientation(event) {
+      const pitch = event.beta ? parseFloat(event.beta.toFixed(1)) : 0;
+      const roll = event.gamma ? parseFloat(event.gamma.toFixed(1)) : 0;
+
+      document.getElementById('pitch-val').innerText = `${pitch}°`;
+      document.getElementById('roll-val').innerText = `${roll}°`;
+
+      updateBubbleUI(pitch, roll);
+
+      const maxAngle = Math.max(Math.abs(pitch), Math.abs(roll));
+      const now = Date.now();
+
+      if (now - lastSendTime > 150) {
+        if (maxAngle > CRITICAL_LIMIT) {
+          sendBLECommand('B');
+          lastSendTime = now;
+        } else if (maxAngle < 0.5) {
+          sendBLECommand('C');
+          lastSendTime = now;
+        }
+      }
+    }
+
+    async function sendBLECommand(cmdChar) {
+      if (isConnected && bleCharacteristic) {
+        try {
+          const encoder = new TextEncoder();
+          await bleCharacteristic.writeValueWithoutResponse(encoder.encode(cmdChar));
+        } catch (err) {
+          console.error("Write error:", err);
+        }
+      }
+    }
+
+    function sendHeartbeat() {
+      if (isConnected) {
+        sendBLECommand('P');
+      }
+    }
+
+    function updateBubbleUI(pitch, roll) {
+      const bubble = document.getElementById('bubble');
+      const maxOffset = 90;
+      const x = Math.min(Math.max((roll / 45) * maxOffset, -maxOffset), maxOffset);
+      const y = Math.min(Math.max((pitch / 45) * maxOffset, -maxOffset), maxOffset);
+
+      bubble.style.transform = `translate(${x}px, ${y}px)`;
+
+      if (Math.max(Math.abs(pitch), Math.abs(roll)) > CRITICAL_LIMIT) {
+        bubble.classList.add('critical');
+      } else {
+        bubble.classList.remove('critical');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      requestSensorPermission();
+    });
+  </script>
+</body>
+</html>
