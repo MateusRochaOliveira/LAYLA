@@ -417,6 +417,42 @@
 
     .meas-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
+    .meas-notes {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .photo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--azulejo);
+      background: var(--azulejo-pale);
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    textarea.form-control { resize: vertical; font-family: 'Inter', sans-serif; min-height: 64px; }
+
+    .photo-thumb-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+    .photo-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+    .photo-thumb-remove {
+      position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+      border-radius: 50%; background: var(--danger); color: white; border: none;
+      font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
     /* ===== MODAL ===== */
     .modal-overlay {
       position: fixed;
@@ -589,10 +625,40 @@
         <input type="text" id="modal-point-name" class="form-control" placeholder="e.g. Top Right Corner, Ramp A...">
       </div>
 
+      <div class="form-group">
+        <label>Field Notes (optional)</label>
+        <textarea id="modal-notes" class="form-control" rows="3" placeholder="e.g. Slight cracking near base; measured after rain."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Photos (up to 3)</label>
+        <div id="photo-thumbs" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px;" onclick="document.getElementById('photo-capture-input').click()">
+            <i class="fa-solid fa-camera"></i> Take Photo
+          </button>
+          <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px;" onclick="document.getElementById('photo-gallery-input').click()">
+            <i class="fa-solid fa-images"></i> Choose Photos
+          </button>
+        </div>
+        <input type="file" id="photo-capture-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoInput(event)">
+        <input type="file" id="photo-gallery-input" accept="image/*" multiple style="display: none;" onchange="handlePhotoInput(event)">
+      </div>
+
       <div style="display: flex; gap: 10px; margin-top: 10px;">
         <button class="btn btn-secondary" onclick="closeModal('save-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="confirmSaveMeasurement()">Confirm & Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MEASUREMENT DETAIL (notes + photos viewer) -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 460px; max-height: 82vh; overflow-y: auto;">
+      <h3 id="detail-title"><i class="fa-solid fa-map-pin" style="color: var(--azulejo);"></i> <span id="detail-title-text"></span></h3>
+      <div id="detail-notes" style="font-family: 'EB Garamond', serif; font-size: 15px; color: var(--text-main); white-space: pre-wrap;"></div>
+      <div id="detail-photos" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Close</button>
     </div>
   </div>
 
@@ -626,15 +692,129 @@
     let stabilityTimer = 0;
     let timerInterval = null;
     let audioCtx = null;
+    let pendingPhotos = [];
 
-    let folders = JSON.parse(localStorage.getItem('nd_folders')) || [
+    const DEFAULT_FOLDERS = [
       { id: 'f1', name: 'Residential Site - Kitchen', measurements: [
-        { id: 'm1', point: 'Main Countertop', angle: '0.05°', date: 'Today, 14:30' },
-        { id: 'm2', point: 'Granite Counter', angle: '0.12°', date: 'Today, 14:32' }
+        { id: 'm1', point: 'Main Countertop', angle: '0.05°', date: 'Today, 14:30', notes: '', photos: [] },
+        { id: 'm2', point: 'Granite Counter', angle: '0.12°', date: 'Today, 14:32', notes: '', photos: [] }
       ]},
       { id: 'f2', name: 'Warehouse B - North Ramp', measurements: [] },
       { id: 'f3', name: 'Solar Panel Installation', measurements: [] }
     ];
+
+    let folders = [];
+
+    /* ==========================================================================
+       INDEXEDDB STORAGE LAYER
+       (photos push well past localStorage's ~5-10MB quota, so all app data
+       now lives in IndexedDB, which comfortably handles hundreds of MB)
+       ========================================================================== */
+    const DB_NAME = 'layla_db';
+    const DB_STORE = 'kv';
+    let dbPromise = null;
+
+    function openDB() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          req.result.createObjectStore(DB_STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return dbPromise;
+    }
+
+    async function idbGet(key) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, 'readonly');
+        const req = tx.objectStore(DB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function idbSet(key, value) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        const req = tx.objectStore(DB_STORE).put(value, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    /* ==========================================================================
+       PHOTO COMPRESSION (client-side, before anything touches storage)
+       ========================================================================== */
+    function compressImageFile(file, maxDim = 1200, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              const scale = maxDim / Math.max(width, height);
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve({ data: canvas.toDataURL('image/jpeg', quality), width, height });
+          };
+          img.onerror = () => reject(new Error('Could not decode image'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePhotoInput(event) {
+      const files = Array.from(event.target.files || []);
+      event.target.value = '';
+      for (const file of files) {
+        if (pendingPhotos.length >= 3) {
+          alert('Maximum of 3 photos per measurement.');
+          break;
+        }
+        try {
+          const compressed = await compressImageFile(file);
+          pendingPhotos.push({ id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), ...compressed });
+        } catch (e) {
+          console.log('Photo processing failed', e);
+        }
+      }
+      renderPhotoThumbs();
+    }
+
+    function renderPhotoThumbs() {
+      const container = document.getElementById('photo-thumbs');
+      container.innerHTML = '';
+      pendingPhotos.forEach((p, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'photo-thumb-wrap';
+        wrap.innerHTML = `<img src="${p.data}" alt="Photo ${idx + 1}"><button type="button" class="photo-thumb-remove" onclick="removePendingPhoto(${idx})">&times;</button>`;
+        container.appendChild(wrap);
+      });
+    }
+
+    function removePendingPhoto(idx) {
+      pendingPhotos.splice(idx, 1);
+      renderPhotoThumbs();
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -798,8 +978,8 @@
     /* ==========================================================================
        FOLDER & STORAGE MANAGEMENT (LOCALSTORAGE)
        ========================================================================== */
-    function saveFoldersToStorage() {
-      localStorage.setItem('nd_folders', JSON.stringify(folders));
+    async function saveFoldersToStorage() {
+      await idbSet('nd_folders', folders);
       updateModalFolderDropdown();
       document.getElementById('folder-count').textContent = folders.length;
     }
@@ -835,18 +1015,24 @@
         const item = document.createElement('div');
         item.className = 'folder-item';
 
-        const measHtml = folder.measurements.map(m => `
-          <div class="meas-card">
-            <div>
-              <strong style="font-size: 14px; color: var(--text-main); font-family: 'EB Garamond', serif;">${m.point}</strong>
+        const measHtml = folder.measurements.map(m => {
+          const hasPhotos = m.photos && m.photos.length > 0;
+          const hasNotes = m.notes && m.notes.trim().length > 0;
+          return `
+          <div class="meas-card" onclick="openMeasurementDetail('${folder.id}','${m.id}')" style="cursor: pointer;">
+            <div style="min-width: 0; flex: 1;">
+              <strong style="font-size: 14px; color: var(--text-main); font-family: 'EB Garamond', serif;">${escapeHtml(m.point)}</strong>
               <div style="font-size: 11px; color: var(--text-muted);">${m.date}</div>
+              ${hasNotes ? `<div class="meas-notes">${escapeHtml(m.notes)}</div>` : ''}
             </div>
             <div class="meas-actions">
+              ${hasPhotos ? `<span class="photo-badge"><i class="fa-solid fa-camera"></i> ${m.photos.length}</span>` : ''}
               <span style="font-weight: 700; color: var(--success); font-size: 15px;">${m.angle}</span>
               <button class="icon-btn danger" title="Delete measurement" onclick="event.stopPropagation(); deleteMeasurement('${folder.id}','${m.id}')"><i class="fa-solid fa-xmark"></i></button>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
 
         item.innerHTML = `
           <div style="width: 100%;">
@@ -884,24 +1070,46 @@
       }
     }
 
-    function deleteFolder(folderId) {
+    async function deleteFolder(folderId) {
       const folder = folders.find(f => f.id === folderId);
       if (!folder) return;
       const ok = confirm(`Delete "${folder.name}" and all its measurements? This cannot be undone.`);
       if (!ok) return;
       folders = folders.filter(f => f.id !== folderId);
-      saveFoldersToStorage();
+      await saveFoldersToStorage();
       renderFoldersUI();
     }
 
-    function deleteMeasurement(folderId, measId) {
+    async function deleteMeasurement(folderId, measId) {
       const folder = folders.find(f => f.id === folderId);
       if (!folder) return;
       const ok = confirm('Delete this measurement?');
       if (!ok) return;
       folder.measurements = folder.measurements.filter(m => m.id !== measId);
-      saveFoldersToStorage();
+      await saveFoldersToStorage();
       renderFoldersUI();
+    }
+
+    function openMeasurementDetail(folderId, measId) {
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
+      const m = folder.measurements.find(x => x.id === measId);
+      if (!m) return;
+
+      document.getElementById('detail-title-text').textContent = `${m.point} — ${m.angle}`;
+      document.getElementById('detail-notes').textContent = m.notes || '';
+
+      const photosEl = document.getElementById('detail-photos');
+      photosEl.innerHTML = '';
+      (m.photos || []).forEach((p, idx) => {
+        const img = document.createElement('img');
+        img.src = p.data;
+        img.alt = `${m.point} photo ${idx + 1}`;
+        img.style.cssText = 'width:100%; border-radius:10px; border:1px solid var(--line); display:block;';
+        photosEl.appendChild(img);
+      });
+
+      document.getElementById('detail-modal').style.display = 'flex';
     }
 
     /* ==========================================================================
@@ -911,8 +1119,11 @@
       const totalAngle = Math.sqrt(currentPitch * currentPitch + currentRoll * currentRoll);
       document.getElementById('modal-angle-val').value = `${totalAngle.toFixed(2)}° (Pitch: ${currentPitch.toFixed(1)}°, Roll: ${currentRoll.toFixed(1)}°)`;
       document.getElementById('modal-point-name').value = '';
+      document.getElementById('modal-notes').value = '';
       document.getElementById('modal-new-folder-name').value = '';
       document.getElementById('new-folder-inline-group').style.display = 'none';
+      pendingPhotos = [];
+      renderPhotoThumbs();
 
       document.getElementById('save-modal').style.display = 'flex';
     }
@@ -926,9 +1137,10 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    function confirmSaveMeasurement() {
+    async function confirmSaveMeasurement() {
       let folderId = document.getElementById('modal-folder-select').value;
       const pointName = document.getElementById('modal-point-name').value.trim() || 'Unnamed Point';
+      const notes = document.getElementById('modal-notes').value.trim();
       const totalAngle = Math.sqrt(currentPitch * currentPitch + currentRoll * currentRoll);
 
       if (folderId === '__new__') {
@@ -945,16 +1157,18 @@
           id: 'm_' + Date.now(),
           point: pointName,
           angle: `${totalAngle.toFixed(2)}°`,
-          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          notes: notes,
+          photos: pendingPhotos.slice()
         });
 
-        saveFoldersToStorage();
+        await saveFoldersToStorage();
         closeModal('save-modal');
         alert('Measurement saved successfully!');
       }
     }
 
-    function confirmCreateFolder() {
+    async function confirmCreateFolder() {
       const name = document.getElementById('new-folder-name').value.trim();
       if (!name) return alert('Please enter a name for the folder.');
 
@@ -964,7 +1178,7 @@
         measurements: []
       });
 
-      saveFoldersToStorage();
+      await saveFoldersToStorage();
       closeModal('new-folder-modal');
       renderFoldersUI();
     }
@@ -1025,28 +1239,65 @@
       doc.line(15, y, pageWidth - 15, y);
       y += 8;
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(23, 26, 36);
       doc.setLineWidth(0.2);
+      const usableWidth = pageWidth - 30;
+      const photoBoxW = 55, photoBoxH = 38, photoGap = 5;
 
       if (folder.measurements.length === 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
         doc.setTextColor(107, 100, 86);
         doc.text('No measurements recorded in this folder.', 15, y);
         y += 8;
       } else {
         folder.measurements.forEach(m => {
-          if (y > 270) {
+          const hasNotes = m.notes && m.notes.trim().length > 0;
+          const hasPhotos = m.photos && m.photos.length > 0;
+          const notesLines = hasNotes ? doc.splitTextToSize(m.notes, usableWidth) : [];
+          const notesHeight = hasNotes ? notesLines.length * 4.5 + 3 : 0;
+          const photosHeight = hasPhotos ? photoBoxH + 6 : 0;
+          const blockHeight = 8 + notesHeight + photosHeight + 6;
+
+          if (y + blockHeight > 280) {
             doc.addPage();
             y = 20;
           }
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
           doc.setTextColor(23, 26, 36);
           doc.text(String(m.point), 15, y, { maxWidth: 100 });
           doc.text(String(m.angle), 120, y);
           doc.text(String(m.date), 160, y);
+          y += 6;
+
+          if (hasNotes) {
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(9);
+            doc.setTextColor(107, 100, 86);
+            doc.text(notesLines, 15, y);
+            y += notesLines.length * 4.5 + 3;
+          }
+
+          if (hasPhotos) {
+            let px = 15;
+            m.photos.slice(0, 3).forEach(p => {
+              const ratio = (p.width && p.height) ? p.width / p.height : 4 / 3;
+              let dw = photoBoxW, dh = photoBoxW / ratio;
+              if (dh > photoBoxH) { dh = photoBoxH; dw = photoBoxH * ratio; }
+              const offX = px + (photoBoxW - dw) / 2;
+              const offY = y + (photoBoxH - dh) / 2;
+              try { doc.addImage(p.data, 'JPEG', offX, offY, dw, dh); } catch (e) { console.log('Photo embed skipped:', e); }
+              doc.setDrawColor(221, 209, 174);
+              doc.rect(px, y, photoBoxW, photoBoxH);
+              px += photoBoxW + photoGap;
+            });
+            y += photoBoxH + 6;
+          }
+
           doc.setDrawColor(221, 209, 174);
-          doc.line(15, y + 3, pageWidth - 15, y + 3);
-          y += 10;
+          doc.line(15, y, pageWidth - 15, y);
+          y += 6;
         });
       }
 
@@ -1067,10 +1318,37 @@
     /* ==========================================================================
        APP INIT
        ========================================================================== */
-    window.addEventListener('load', () => {
-      saveFoldersToStorage();
+    async function initApp() {
+      try {
+        let stored = await idbGet('nd_folders');
+
+        // One-time migration from the old localStorage-based version, if present
+        if (!stored) {
+          const legacy = localStorage.getItem('nd_folders');
+          if (legacy) {
+            try { stored = JSON.parse(legacy); } catch (e) { stored = null; }
+          }
+        }
+
+        folders = stored || DEFAULT_FOLDERS;
+        // Backfill notes/photos fields for entries saved before this feature existed
+        folders.forEach(f => f.measurements.forEach(m => {
+          if (m.notes === undefined) m.notes = '';
+          if (m.photos === undefined) m.photos = [];
+        }));
+
+        await saveFoldersToStorage();
+        localStorage.removeItem('nd_folders');
+      } catch (e) {
+        console.error('Storage init failed, falling back to defaults:', e);
+        folders = DEFAULT_FOLDERS;
+        updateModalFolderDropdown();
+        document.getElementById('folder-count').textContent = folders.length;
+      }
       updateEngine(0, 0);
-    });
+    }
+
+    window.addEventListener('load', initApp);
   </script>
 </body>
 </html>
