@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    /* ===== CSS (mesmo do original) ===== */
     :root {
       --porcelain: #f5f1e6;
       --porcelain-alt: #ece4d0;
@@ -34,9 +33,7 @@
       --text-main: #171a24;
       --text-muted: #6b6456;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-
     body {
       background-color: var(--porcelain);
       background-image: radial-gradient(at 50% 0%, rgba(31, 92, 158, 0.05) 0px, transparent 60%);
@@ -48,7 +45,6 @@
       align-items: center;
       padding-bottom: 30px;
     }
-
     .azulejo-strip {
       width: 100%;
       height: 26px;
@@ -59,439 +55,279 @@
       box-shadow: 0 1px 0 rgba(10,17,41,0.15), 0 -1px 0 rgba(10,17,41,0.15);
       flex-shrink: 0;
     }
-
-    header {
-      width: 100%;
-      max-width: 600px;
-      padding: 26px 20px 18px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .brand-mark img {
-      height: 68px;
-      width: auto;
-      display: block;
-    }
-
+    header { width: 100%; max-width: 600px; padding: 26px 20px 18px; display: flex; justify-content: center; align-items: center; }
+    .brand-mark img { height: 68px; width: auto; display: block; }
     .nav-tabs {
-      display: flex;
-      gap: 6px;
-      background: var(--porcelain-alt);
-      padding: 5px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      margin: 16px auto 4px;
-      width: calc(100% - 40px);
-      max-width: 560px;
+      display: flex; gap: 6px; background: var(--porcelain-alt); padding: 5px; border-radius: 12px;
+      border: 1px solid var(--line); margin: 16px auto 4px; width: calc(100% - 40px); max-width: 560px;
     }
-
     .nav-btn {
-      flex: 1;
-      padding: 11px 6px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      font-size: 13px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      flex: 1; padding: 11px 6px; border: none; background: transparent; color: var(--text-muted);
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s ease;
     }
-
-    .nav-btn.active {
-      background: var(--navy);
-      color: var(--porcelain);
-      font-weight: 600;
-      box-shadow: 0 3px 10px rgba(10,17,41,0.25);
-    }
-
-    .container {
-      width: 100%;
-      max-width: 560px;
-      padding: 20px 20px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
+    .nav-btn.active { background: var(--navy); color: var(--porcelain); font-weight: 600; box-shadow: 0 3px 10px rgba(10,17,41,0.25); }
+    .container { width: 100%; max-width: 560px; padding: 20px 20px 0; display: flex; flex-direction: column; gap: 18px; }
     .tab-content { display: none; flex-direction: column; gap: 18px; }
     .tab-content.active { display: flex; }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 6px 18px rgba(23, 26, 36, 0.06);
-    }
-
-    .card h3 {
-      font-family: 'Cinzel', serif;
-      font-weight: 600;
-      color: var(--navy);
-    }
-
-    .level-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 22px 20px 26px;
-      position: relative;
-    }
-
-    .medallion-frame {
-      width: 254px;
-      height: 254px;
-      border-radius: 50%;
-      border: 1.5px solid var(--navy);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 24px;
-      position: relative;
-    }
-
+    .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: 0 6px 18px rgba(23, 26, 36, 0.06); }
+    .card h3 { font-family: 'Cinzel', serif; font-weight: 600; color: var(--navy); }
+    .level-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 22px 20px 26px; position: relative; }
+    .medallion-frame { width: 254px; height: 254px; border-radius: 50%; border: 1.5px solid var(--navy); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; position: relative; }
     .target-circle {
-      width: 236px;
-      height: 236px;
-      border-radius: 50%;
-      border: 3px solid var(--navy);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: var(--porcelain);
-      background-image: var(--tile-b);
-      background-size: 236px 236px;
-      background-position: center;
-      overflow: hidden;
-      box-shadow: inset 0 0 0 6px var(--card-bg);
+      width: 236px; height: 236px; border-radius: 50%; border: 3px solid var(--navy); position: relative;
+      display: flex; align-items: center; justify-content: center; background-color: var(--porcelain);
+      background-image: var(--tile-b); background-size: 236px 236px; background-position: center;
+      overflow: hidden; box-shadow: inset 0 0 0 6px var(--card-bg);
     }
-
     .target-circle::before {
-      content: '';
-      position: absolute;
-      inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: radial-gradient(circle, rgba(251,249,243,0.94) 0%, rgba(251,249,243,0.86) 55%, rgba(251,249,243,0.55) 100%);
     }
-
-    .crosshair-h, .crosshair-v {
-      position: absolute;
-      background: rgba(16, 28, 56, 0.15);
-      z-index: 1;
-    }
+    .crosshair-h, .crosshair-v { position: absolute; background: rgba(16, 28, 56, 0.15); z-index: 1; }
     .crosshair-h { width: 100%; height: 1px; }
     .crosshair-v { height: 100%; width: 1px; }
-
-    .tolerance-zone {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 1.5px dashed var(--gold);
-      position: absolute;
-      z-index: 1;
-      transition: border-color 0.3s;
-    }
-
+    .tolerance-zone { width: 42px; height: 42px; border-radius: 50%; border: 1.5px dashed var(--gold); position: absolute; z-index: 1; transition: border-color 0.3s; }
     .bubble {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, var(--azulejo-light), var(--azulejo));
-      position: absolute;
-      z-index: 2;
-      box-shadow: 0 0 12px rgba(31, 92, 158, 0.5), 0 2px 4px rgba(10,17,41,0.3);
-      transition: transform 0.08s ease-out, background 0.3s, box-shadow 0.3s;
-      transform: translate(0, 0);
+      width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--azulejo-light), var(--azulejo));
+      position: absolute; z-index: 2; box-shadow: 0 0 12px rgba(31, 92, 158, 0.5), 0 2px 4px rgba(10,17,41,0.3);
+      transition: transform 0.08s ease-out, background 0.3s, box-shadow 0.3s; transform: translate(0, 0);
     }
-
-    .timer-ring-container {
-      position: absolute;
-      width: 254px;
-      height: 254px;
-      pointer-events: none;
-    }
+    .timer-ring-container { position: absolute; width: 254px; height: 254px; pointer-events: none; }
     .timer-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
     .timer-ring-bg { stroke: rgba(16,28,56,0.08); stroke-width: 3; fill: none; }
-    .timer-ring-progress {
-      stroke: var(--gold);
-      stroke-width: 3;
-      stroke-linecap: round;
-      fill: none;
-      stroke-dasharray: 785;
-      stroke-dashoffset: 785;
-      transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
-    }
-
-    .angles-display {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      width: 100%;
-      gap: 10px;
-      text-align: center;
-    }
-
-    .angle-box {
-      background: var(--porcelain-alt);
-      border: 1px solid var(--line);
-      padding: 12px 8px;
-      border-radius: 10px;
-    }
-
-    .angle-label {
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-    }
-
-    .angle-val {
-      font-family: 'Inter', sans-serif;
-      font-size: 19px;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
+    .timer-ring-progress { stroke: var(--gold); stroke-width: 3; stroke-linecap: round; fill: none; stroke-dasharray: 785; stroke-dashoffset: 785; transition: stroke-dashoffset 0.1s linear, stroke 0.3s; }
+    .angles-display { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; gap: 10px; text-align: center; }
+    .angle-box { background: var(--porcelain-alt); border: 1px solid var(--line); padding: 12px 8px; border-radius: 10px; }
+    .angle-label { font-family: 'Cinzel', serif; font-size: 9px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 5px; }
+    .angle-val { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; color: var(--navy); }
     .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 16px;
-      border-radius: 30px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--warning-bg);
-      color: var(--warning);
-      border: 1px solid #e3cd9c;
-      margin-bottom: 14px;
-      transition: all 0.3s;
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 30px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; background: var(--warning-bg);
+      color: var(--warning); border: 1px solid #e3cd9c; margin-bottom: 14px; transition: all 0.3s;
     }
-
-    .status-badge.perfect {
-      background: var(--success-bg);
-      color: var(--success);
-      border-color: #b9d4b3;
-    }
-
+    .status-badge.perfect { background: var(--success-bg); color: var(--success); border-color: #b9d4b3; }
+    .status-badge.connected { background: var(--azulejo-pale); color: var(--azulejo); border-color: var(--azulejo-light); }
     .btn {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      transition: all 0.2s;
-      letter-spacing: 0.2px;
+      width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 9px; transition: all 0.2s; letter-spacing: 0.2px;
     }
-
-    .btn-primary {
-      background: var(--navy);
-      color: var(--porcelain);
-      box-shadow: 0 4px 12px rgba(10,17,41,0.25);
-    }
+    .btn-primary { background: var(--navy); color: var(--porcelain); box-shadow: 0 4px 12px rgba(10,17,41,0.25); }
     .btn-primary:active { transform: scale(0.98); }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-      box-shadow: 0 4px 12px rgba(63,125,82,0.3);
-      display: none;
-    }
-
-    .btn-secondary {
-      background: var(--card-bg);
-      color: var(--navy);
-      border: 1px solid var(--line);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--azulejo);
-      border: 1px solid var(--azulejo-light);
-    }
-
-    .btn-ble {
-      background: var(--azulejo);
-      color: white;
-      box-shadow: 0 4px 12px rgba(31,92,158,0.3);
-    }
-    .btn-ble.connected {
-      background: var(--success);
-    }
+    .btn-success { background: var(--success); color: white; box-shadow: 0 4px 12px rgba(63,125,82,0.3); display: none; }
+    .btn-secondary { background: var(--card-bg); color: var(--navy); border: 1px solid var(--line); }
+    .btn-outline { background: transparent; color: var(--azulejo); border: 1px solid var(--azulejo-light); }
+    .btn-ble { background: var(--azulejo); color: white; box-shadow: 0 4px 12px rgba(31,92,158,0.3); }
+    .btn-ble.connected { background: var(--success); }
     .btn-ble:active { transform: scale(0.98); }
-
-    .folder-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
+    .folder-header { display: flex; justify-content: space-between; align-items: center; }
     .folder-list { display: flex; flex-direction: column; gap: 12px; }
-
-    .folder-item {
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--azulejo);
-      border-radius: 10px;
-      padding: 15px 16px;
-      transition: background 0.2s;
-    }
-
+    .folder-item { background: var(--card-bg); border: 1px solid var(--line); border-left: 4px solid var(--azulejo); border-radius: 10px; padding: 15px 16px; transition: background 0.2s; }
     .folder-info { display: flex; align-items: center; gap: 14px; cursor: pointer; flex: 1; min-width: 0; }
-
-    .folder-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 9px;
-      background: var(--azulejo-pale);
-      color: var(--azulejo);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
+    .folder-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--azulejo-pale); color: var(--azulejo); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
     .folder-info h4 { font-family: 'EB Garamond', serif; font-weight: 600; font-size: 16px; }
-
     .folder-row-top { display: flex; align-items: center; gap: 10px; }
-
     .folder-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-
     .icon-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--porcelain);
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.15s;
-      flex-shrink: 0;
+      width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--porcelain);
+      color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 12px; transition: all 0.15s; flex-shrink: 0;
     }
     .icon-btn:hover { border-color: var(--azulejo); color: var(--azulejo); }
     .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
-
     .measurements-list { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
-
     .meas-card {
-      background: var(--porcelain-alt);
-      border-left: 3px solid var(--success);
-      border-radius: 7px;
-      padding: 11px 13px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'Inter', sans-serif;
-      gap: 10px;
+      background: var(--porcelain-alt); border-left: 3px solid var(--success); border-radius: 7px;
+      padding: 11px 13px; display: flex; justify-content: space-between; align-items: center;
+      font-family: 'Inter', sans-serif; gap: 10px;
     }
-
     .meas-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-
-    .meas-notes {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-style: italic;
-      margin-top: 3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 220px;
-    }
-
-    .photo-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: 'Inter', sans-serif;
-      font-size: 11px;
-      color: var(--azulejo);
-      background: var(--azulejo-pale);
-      padding: 3px 8px;
-      border-radius: 12px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
+    .meas-notes { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .photo-badge { display: inline-flex; align-items: center; gap: 4px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--azulejo); background: var(--azulejo-pale); padding: 3px 8px; border-radius: 12px; cursor: pointer; flex-shrink: 0; }
     textarea.form-control { resize: vertical; font-family: 'Inter', sans-serif; min-height: 64px; }
-
     .photo-thumb-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
     .photo-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
-    .photo-thumb-remove {
-      position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
-      border-radius: 50%; background: var(--danger); color: white; border: none;
-      font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(10, 17, 41, 0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 20px;
-    }
-
-    .modal {
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 440px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 20px 50px rgba(10,17,41,0.35);
-    }
-
-    .modal h3 {
-      font-family: 'Cinzel', serif;
-      font-size: 16px;
-      color: var(--navy);
-      font-weight: 600;
-    }
-
+    .photo-thumb-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--danger); color: white; border: none; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 17, 41, 0.55); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal { background: var(--card-bg); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 50px rgba(10,17,41,0.35); }
+    .modal h3 { font-family: 'Cinzel', serif; font-size: 16px; color: var(--navy); font-weight: 600; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label {
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-control {
-      background: var(--porcelain);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 11px 12px;
-      color: var(--text-main);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      outline: none;
-    }
+    .form-group label { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-control { background: var(--porcelain); border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; }
     .form-control:focus { border-color: var(--azulejo); }
   </style>
 </head>
 <body>
+  <div class="azulejo-strip" aria-hidden="true"></div>
+  <header>
+    <div class="brand-mark">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='68'%3E%3Crect width='200' height='68' fill='%23101c38'/%3E%3Ctext x='100' y='42' font-family='Cinzel,serif' font-size='28' font-weight='600' fill='%23f5f1e6' text-anchor='middle'%3ELAYLA%3C/text%3E%3C/svg%3E" alt="LAYLA">
+    </div>
+  </header>
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('level-tab')">Measurement</button>
+    <button class="nav-btn" onclick="switchTab('folders-tab')">Folders (<span id="folder-count">3</span>)</button>
+  </div>
+  <div class="container">
+    <div id="level-tab" class="tab-content active">
+      <div class="card level-container">
+        <div id="status-badge" class="status-badge"><i class="fa-solid fa-arrows-spin"></i> <span id="status-text">Adjusting Position</span></div>
+        <div class="medallion-frame">
+          <div class="target-circle">
+            <div class="crosshair-h"></div><div class="crosshair-v"></div>
+            <div class="tolerance-zone"></div>
+            <div id="bubble" class="bubble"></div>
+          </div>
+          <div class="timer-ring-container">
+            <svg class="timer-ring-svg" viewBox="0 0 254 254">
+              <circle class="timer-ring-bg" cx="127" cy="127" r="125"></circle>
+              <circle id="timer-progress" class="timer-ring-progress" cx="127" cy="127" r="125"></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="angles-display">
+          <div class="angle-box"><div class="angle-label">Tilt (X)</div><div id="pitch-val" class="angle-val">0.0°</div></div>
+          <div class="angle-box"><div class="angle-label">Roll (Y)</div><div id="roll-val" class="angle-val">0.0°</div></div>
+          <div class="angle-box"><div class="angle-label">Total</div><div id="total-val" class="angle-val" style="color: var(--azulejo);">0.0°</div></div>
+        </div>
+      </div>
+      <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="btn-ble-connect" class="btn btn-ble" onclick="connectBLE()"><i class="fa-solid fa-bluetooth"></i> Connect to LAYLA</button>
+        <button id="btn-save" class="btn btn-success" onclick="openSaveModal()"><i class="fa-solid fa-floppy-disk"></i> Save Validated Measurement</button>
+      </div>
+    </div>
+    <div id="folders-tab" class="tab-content">
+      <div class="card">
+        <div class="folder-header">
+          <h3 style="font-size:15px;">Site Manager</h3>
+          <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:13px;" onclick="openNewFolderModal()"><i class="fa-solid fa-plus"></i> New Folder</button>
+        </div>
+      </div>
+      <div id="folder-list-container" class="folder-list"></div>
+    </div>
+  </div>
+  <div class="azulejo-strip" aria-hidden="true" style="margin-top:26px;"></div>
+    <div id="save-modal" class="modal-overlay">
+    <div class="modal">
+      <h3><i class="fa-solid fa-square-check" style="color:var(--success);"></i> Save Validated Measurement</h3>
+      <div class="form-group">
+        <label>Target Folder</label>
+        <select id="modal-folder-select" class="form-control" onchange="toggleNewFolderInline()"></select>
+      </div>
+      <div class="form-group" id="new-folder-inline-group" style="display:none;">
+        <label>New Folder Name</label>
+        <input type="text" id="modal-new-folder-name" class="form-control" placeholder="e.g. Warehouse B - Solar Panel">
+      </div>
+      <div class="form-group">
+        <label>Measured Angle</label>
+        <input type="text" id="modal-angle-val" class="form-control" readonly style="font-weight:bold;color:var(--azulejo);">
+      </div>
+      <div class="form-group">
+        <label>Measurement Point / Label</label>
+        <input type="text" id="modal-point-name" class="form-control" placeholder="e.g. Top Right Corner, Ramp A...">
+      </div>
+      <div class="form-group">
+        <label>Field Notes (optional)</label>
+        <textarea id="modal-notes" class="form-control" rows="3" placeholder="e.g. Slight cracking near base; measured after rain."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Photos (up to 3)</label>
+        <div id="photo-thumbs" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button type="button" class="btn btn-outline" style="padding:10px;font-size:13px;" onclick="document.getElementById('photo-capture-input').click()"><i class="fa-solid fa-camera"></i> Take Photo</button>
+          <button type="button" class="btn btn-outline" style="padding:10px;font-size:13px;" onclick="document.getElementById('photo-gallery-input').click()"><i class="fa-solid fa-images"></i> Choose Photos</button>
+        </div>
+        <input type="file" id="photo-capture-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoInput(event)">
+        <input type="file" id="photo-gallery-input" accept="image/*" multiple style="display:none;" onchange="handlePhotoInput(event)">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button class="btn btn-secondary" onclick="closeModal('save-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmSaveMeasurement()">Confirm & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal" style="max-width:460px;max-height:82vh;overflow-y:auto;">
+      <h3 id="detail-title"><i class="fa-solid fa-map-pin" style="color:var(--azulejo);"></i> <span id="detail-title-text"></span></h3>
+      <div id="detail-notes" style="font-family:'EB Garamond',serif;font-size:15px;color:var(--text-main);white-space:pre-wrap;"></div>
+      <div id="detail-photos" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Close</button>
+    </div>
+  </div>
+
+  <div id="new-folder-modal" class="modal-overlay">
+    <div class="modal">
+      <h3><i class="fa-solid fa-folder-plus" style="color:var(--azulejo);"></i> Create New Site Folder</h3>
+      <div class="form-group">
+        <label>Site / Project Name</label>
+        <input type="text" id="new-folder-name" class="form-control" placeholder="e.g. Kitchen Renovation - Client John">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button class="btn btn-secondary" onclick="closeModal('new-folder-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmCreateFolder()">Create Folder</button>
+      </div>
+    </div>
+  </div>
+    <script>
+    const TOLERANCE = 0.3;
+    const TIMER_DURATION = 10;
+    let currentPitch = 0, currentRoll = 0, isLevelValid = false, stabilityTimer = 0, timerInterval = null, pendingPhotos = [];
+    let bleDevice = null, bleCharacteristic = null, bleConnected = false, blePingInterval = null;
+
+    const DEFAULT_FOLDERS = [
+      { id:'f1', name:'Residential Site - Kitchen', measurements:[{ id:'m1', point:'Main Countertop', angle:'0.05°', date:'Today, 14:30', notes:'', photos:[] }] },
+      { id:'f2', name:'Warehouse B - North Ramp', measurements:[] },
+      { id:'f3', name:'Solar Panel Installation', measurements:[] }
+    ];
+    let folders = [];
+
+    const DB_NAME='layla_db', DB_STORE='kv'; let dbPromise=null;
+    function openDB(){ if(dbPromise)return dbPromise; dbPromise=new Promise((r,j)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=()=>req.result.createObjectStore(DB_STORE); req.onsuccess=()=>r(req.result); req.onerror=()=>j(req.error); }); return dbPromise; }
+    async function idbGet(k){ const db=await openDB(); return new Promise((r,j)=>{ const tx=db.transaction(DB_STORE,'readonly'); const req=tx.objectStore(DB_STORE).get(k); req.onsuccess=()=>r(req.result); req.onerror=()=>j(req.error); }); }
+    async function idbSet(k,v){ const db=await openDB(); return new Promise((r,j)=>{ const tx=db.transaction(DB_STORE,'readwrite'); const req=tx.objectStore(DB_STORE).put(v,k); req.onsuccess=()=>r(); req.onerror=()=>j(req.error); }); }
+
+    function compressImageFile(file,maxDim=1200,quality=0.72){ return new Promise((r,j)=>{ const reader=new FileReader(); reader.onload=(e)=>{ const img=new Image(); img.onload=()=>{ let {width,height}=img; if(width>maxDim||height>maxDim){ const scale=maxDim/Math.max(width,height); width=Math.round(width*scale); height=Math.round(height*scale); } const canvas=document.createElement('canvas'); canvas.width=width; canvas.height=height; canvas.getContext('2d').drawImage(img,0,0,width,height); r({data:canvas.toDataURL('image/jpeg',quality),width,height}); }; img.onerror=()=>j(new Error('Could not decode image')); img.src=e.target.result; }; reader.onerror=()=>j(new Error('Could not read file')); reader.readAsDataURL(file); }); }
+    async function handlePhotoInput(e){ const files=Array.from(e.target.files||[]); e.target.value=''; for(const file of files){ if(pendingPhotos.length>=3){ alert('Maximum of 3 photos per measurement.'); break; } try{ const compressed=await compressImageFile(file); pendingPhotos.push({id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),...compressed}); }catch(ex){ console.log('Photo processing failed',ex); } } renderPhotoThumbs(); }
+    function renderPhotoThumbs(){ const container=document.getElementById('photo-thumbs'); container.innerHTML=''; pendingPhotos.forEach((p,idx)=>{ const wrap=document.createElement('div'); wrap.className='photo-thumb-wrap'; wrap.innerHTML='<img src="'+p.data+'" alt="Photo '+(idx+1)+'"><button type="button" class="photo-thumb-remove" onclick="removePendingPhoto('+idx+')">&times;</button>'; container.appendChild(wrap); }); }
+    function removePendingPhoto(idx){ pendingPhotos.splice(idx,1); renderPhotoThumbs(); }
+
+    function switchTab(tabId){ document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active')); document.getElementById(tabId).classList.add('active'); event.currentTarget.classList.add('active'); if(tabId==='folders-tab') renderFoldersUI(); }
+    function escapeHtml(str){ const div=document.createElement('div'); div.textContent=str; return div.innerHTML; }
+
+    async function connectBLE(){ const btn=document.getElementById('btn-ble-connect'); btn.textContent='Connecting...'; btn.disabled=true; try{ const device=await navigator.bluetooth.requestDevice({ filters:[{name:'LAYLA_ACTUATOR'}], optionalServices:['4fa12345-1234-1234-1234-123456789abc'] }); const server=await device.gatt.connect(); const service=await server.getPrimaryService('4fa12345-1234-1234-1234-123456789abc'); bleCharacteristic=await service.getCharacteristic('beb54321-1234-1234-1234-123456789abc'); bleDevice=device; bleConnected=true; btn.innerHTML='<i class="fa-solid fa-link"></i> Connected ✅'; btn.className='btn btn-ble connected'; btn.disabled=false; document.getElementById('status-badge').className='status-badge connected'; document.getElementById('status-text').textContent='BLE Connected — Listening for LAYLA'; if(blePingInterval) clearInterval(blePingInterval); blePingInterval=setInterval(()=>{ if(bleConnected&&bleCharacteristic) sendBLECommand('P'); },1000); console.log('✅ Connected to LAYLA_ACTUATOR'); enableSensors(); } catch(error){ console.error('❌ BLE Connection failed:',error); btn.textContent='Connect to LAYLA'; btn.className='btn btn-ble'; btn.disabled=false; alert('Could not connect to LAYLA. Make sure the ESP32 is powered on and advertising.'); } }
+    function sendBLECommand(command){ if(!bleConnected||!bleCharacteristic) return; try{ bleCharacteristic.writeValueWithoutResponse(new TextEncoder().encode(command)); }catch(e){ console.warn('Error sending BLE command:',e); } }
+
+    function enableSensors(){ if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){ DeviceOrientationEvent.requestPermission().then(state=>{ if(state==='granted'){ window.addEventListener('deviceorientation',handleOrientation); }else{ alert('Sensor permission denied.'); } }).catch(console.error); }else if(window.DeviceOrientationEvent){ window.addEventListener('deviceorientation',handleOrientation); }else{ alert('Your browser does not support orientation sensors.'); } }
+    function handleOrientation(event){ const pitch=event.beta||0; const roll=event.gamma||0; updateEngine(pitch,roll); }
+
+    function updateEngine(pitch,roll){ currentPitch=pitch; currentRoll=roll; const totalAngle=Math.sqrt(pitch*pitch+roll*roll); document.getElementById('pitch-val').textContent=pitch.toFixed(1)+'°'; document.getElementById('roll-val').textContent=roll.toFixed(1)+'°'; document.getElementById('total-val').textContent=totalAngle.toFixed(1)+'°'; const scale=8; const offsetX=Math.max(-90,Math.min(90,roll*scale)); const offsetY=Math.max(-90,Math.min(90,pitch*scale)); document.getElementById('bubble').style.transform='translate('+offsetX+'px,'+offsetY+'px)'; const inRange=totalAngle<=TOLERANCE; if(inRange){ if(!timerInterval) startStabilityTimer(); }else{ resetStabilityTimer(); document.getElementById('status-badge').className='status-badge'; document.getElementById('status-text').textContent='Adjusting Position...'; document.getElementById('btn-save').style.display='none'; document.getElementById('bubble').style.background='radial-gradient(circle at 35% 35%, #d9a13a, #b9791c)'; sendBLECommand('B'); } }
+
+    function startStabilityTimer(){ stabilityTimer=0; const statusBadge=document.getElementById('status-badge'); const statusText=document.getElementById('status-text'); const progressCircle=document.getElementById('timer-progress'); const bubbleEl=document.getElementById('bubble'); timerInterval=setInterval(()=>{ stabilityTimer+=0.1; const progressPct=Math.min(1,stabilityTimer/TIMER_DURATION); const circleLength=785; progressCircle.style.strokeDashoffset=circleLength-(progressPct*circleLength); statusBadge.className='status-badge'; statusText.textContent='Stabilizing: '+(TIMER_DURATION-stabilityTimer).toFixed(1)+'s'; sendBLECommand('P'); if(stabilityTimer>=TIMER_DURATION){ clearInterval(timerInterval); timerInterval=null; isLevelValid=true; statusBadge.className='status-badge perfect'; statusText.textContent='Level Validated (10s OK)'; document.getElementById('btn-save').style.display='flex'; bubbleEl.style.background='radial-gradient(circle at 35% 35%, #5a9a71, #3f7d52)'; sendBLECommand('C'); } },100); }
+
+    function resetStabilityTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } stabilityTimer=0; isLevelValid=false; document.getElementById('timer-progress').style.strokeDashoffset=785; }
+
+    function renderFoldersUI(){ const container=document.getElementById('folder-list-container'); container.innerHTML=''; folders.forEach(folder=>{ const item=document.createElement('div'); item.className='folder-item'; const measHtml=folder.measurements.map(m=>{ const hasPhotos=m.photos&&m.photos.length>0; const hasNotes=m.notes&&m.notes.trim().length>0; return '<div class="meas-card" onclick="openMeasurementDetail(\''+folder.id+'\',\''+m.id+'\')" style="cursor:pointer;"><div style="min-width:0;flex:1;"><strong style="font-size:14px;color:var(--text-main);font-family:\'EB Garamond\',serif;">'+escapeHtml(m.point)+'</strong><div style="font-size:11px;color:var(--text-muted);">'+m.date+'</div>'+(hasNotes?'<div class="meas-notes">'+escapeHtml(m.notes)+'</div>':'')+'</div><div class="meas-actions">'+(hasPhotos?'<span class="photo-badge"><i class="fa-solid fa-camera"></i> '+m.photos.length+'</span>':'')+'<span style="font-weight:700;color:var(--success);font-size:15px;">'+m.angle+'</span><button class="icon-btn danger" title="Delete measurement" onclick="event.stopPropagation(); deleteMeasurement(\''+folder.id+'\',\''+m.id+'\')"><i class="fa-solid fa-xmark"></i></button></div></div>'; }).join(''); item.innerHTML='<div style="width:100%;"><div class="folder-row-top"><div class="folder-info" onclick="toggleFolderExpand(\''+folder.id+'\')"><div class="folder-icon"><i class="fa-solid fa-folder-closed"></i></div><div style="flex:1;min-width:0;"><h4>'+folder.name+'</h4><p style="font-family:\'Inter\',sans-serif;font-size:12px;color:var(--text-muted);margin-top:2px;">'+folder.measurements.length+' measurement(s) saved</p></div></div><div class="folder-actions"><button class="icon-btn" title="Generate PDF report" onclick="event.stopPropagation(); generatePDFReport(\''+folder.id+'\')"><i class="fa-solid fa-file-pdf"></i></button><button class="icon-btn danger" title="Delete folder" onclick="event.stopPropagation(); deleteFolder(\''+folder.id+'\')"><i class="fa-solid fa-trash"></i></button><button class="icon-btn" title="Expand" onclick="toggleFolderExpand(\''+folder.id+'\')"><i class="fa-solid fa-chevron-down"></i></button></div></div><div id="meas-list-'+folder.id+'" class="measurements-list" style="display:none;">'+(measHtml||'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px;font-family:\'Inter\',sans-serif;">No measurements in this folder yet.</div>')+'</div></div>'; container.appendChild(item); }); }
+    function toggleFolderExpand(folderId){ const el=document.getElementById('meas-list-'+folderId); if(el) el.style.display=el.style.display==='none'?'flex':'none'; }
+
+    async function saveFoldersToStorage(){ await idbSet('nd_folders',folders); document.getElementById('folder-count').textContent=folders.length; updateModalFolderDropdown(); }
+    function updateModalFolderDropdown(){ const modalSelect=document.getElementById('modal-folder-select'); modalSelect.innerHTML=''; folders.forEach(f=>{ const opt=document.createElement('option'); opt.value=f.id; opt.textContent=f.name; modalSelect.appendChild(opt); }); const newOpt=document.createElement('option'); newOpt.value='__new__'; newOpt.textContent='+ Create New Folder...'; modalSelect.appendChild(newOpt); }
+    async function deleteFolder(folderId){ const folder=folders.find(f=>f.id===folderId); if(!folder) return; if(!confirm('Delete "'+folder.name+'" and all its measurements? This cannot be undone.')) return; folders=folders.filter(f=>f.id!==folderId); await saveFoldersToStorage(); renderFoldersUI(); }
+    async function deleteMeasurement(folderId,measId){ const folder=folders.find(f=>f.id===folderId); if(!folder) return; if(!confirm('Delete this measurement?')) return; folder.measurements=folder.measurements.filter(m=>m.id!==measId); await saveFoldersToStorage(); renderFoldersUI(); }
+    function openMeasurementDetail(folderId,measId){ const folder=folders.find(f=>f.id===folderId); if(!folder) return; const m=folder.measurements.find(x=>x.id===measId); if(!m) return; document.getElementById('detail-title-text').textContent=m.point+' — '+m.angle; document.getElementById('detail-notes').textContent=m.notes||''; const photosEl=document.getElementById('detail-photos'); photosEl.innerHTML=''; (m.photos||[]).forEach(p=>{ const img=document.createElement('img'); img.src=p.data; img.alt=m.point+' photo'; img.style.cssText='width:100%;border-radius:10px;border:1px solid var(--line);display:block;margin-bottom:8px;'; photosEl.appendChild(img); }); document.getElementById('detail-modal').style.display='flex'; }
+
+    function openSaveModal(){ const totalAngle=Math.sqrt(currentPitch*currentPitch+currentRoll*currentRoll); document.getElementById('modal-angle-val').value=totalAngle.toFixed(2)+'° (Pitch: '+currentPitch.toFixed(1)+'°, Roll: '+currentRoll.toFixed(1)+'°)'; document.getElementById('modal-point-name').value=''; document.getElementById('modal-notes').value=''; document.getElementById('modal-new-folder-name').value=''; document.getElementById('new-folder-inline-group').style.display='none'; pendingPhotos=[]; renderPhotoThumbs(); document.getElementById('save-modal').style.display='flex'; }
+    function openNewFolderModal(){ document.getElementById('new-folder-name').value=''; document.getElementById('new-folder-modal').style.display='flex'; }
+    function closeModal(id){ document.getElementById(id).style.display='none'; }
+    function toggleNewFolderInline(){ const select=document.getElementById('modal-folder-select'); const group=document.getElementById('new-folder-inline-group'); group.style.display=select.value==='__new__'?'flex':'none'; }
+    async function confirmSaveMeasurement(){ let folderId=document.getElementById('modal-folder-select').value; const pointName=document.getElementById('modal-point-name').value.trim()||'Unnamed Point'; const notes=document.getElementById('modal-notes').value.trim(); const totalAngle=Math.sqrt(currentPitch*currentPitch+currentRoll*currentRoll); if(folderId==='__new__'){ const newName=document.getElementById('modal-new-folder-name').value.trim(); if(!newName){ alert('Please enter a name for the new folder.'); return; } const newFolder={id:'f_'+Date.now(),name:newName,measurements:[]}; folders.push(newFolder); folderId=newFolder.id; } const folder=folders.find(f=>f.id===folderId); if(folder){ folder.measurements.unshift({ id:'m_'+Date.now(), point:pointName, angle:totalAngle.toFixed(2)+'°', date:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), notes:notes, photos:pendingPhotos.slice() }); await saveFoldersToStorage(); closeModal('save-modal'); alert('Measurement saved successfully!'); } }
+    async function confirmCreateFolder(){ const name=document.getElementById('new-folder-name').value.trim(); if(!name) return alert('Please enter a name for the folder.'); folders.push({id:'f_'+Date.now(),name:name,measurements:[]}); await saveFoldersToStorage(); closeModal('new-folder-modal'); renderFoldersUI(); }
+
+    function generatePDFReport(folderId){ const folder=folders.find(f=>f.id===folderId); if(!folder) return; if(!window.jspdf){ alert('PDF library failed to load. Check your internet connection.'); return; } const {jsPDF}=window.jspdf; const doc=new jsPDF(); const pageWidth=doc.internal.pageSize.getWidth(); const pageHeight=doc.internal.pageSize.getHeight(); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(16,28,56); doc.text('Technical Inclination Report',pageWidth/2,20,{align:'center'}); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(107,100,86); doc.text('Site: '+folder.name,pageWidth/2,28,{align:'center'}); doc.text('Generated: '+new Date().toLocaleString(),pageWidth/2,34,{align:'center'}); doc.setDrawColor(221,209,174); doc.line(15,42,pageWidth-15,42); let y=52; doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(16,28,56); doc.text('Point',15,y); doc.text('Angle',120,y); doc.text('Timestamp',160,y); y+=4; doc.setDrawColor(31,92,158); doc.line(15,y,pageWidth-15,y); y+=8; if(folder.measurements.length===0){ doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(107,100,86); doc.text('No measurements recorded.',15,y); }else{ folder.measurements.forEach(m=>{ if(y>280){ doc.addPage(); y=20; } doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(23,26,36); doc.text(m.point,15,y,{maxWidth:100}); doc.text(m.angle,120,y); doc.text(m.date,160,y); y+=8; if(m.notes&&m.notes.trim()){ doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(107,100,86); const lines=doc.splitTextToSize(m.notes,pageWidth-30); doc.text(lines,15,y); y+=lines.length*4.5+4; } if(m.photos&&m.photos.length>0){ let px=15; m.photos.slice(0,3).forEach(p=>{ try{ const ratio=(p.width&&p.height)?p.width/p.height:4/3; let dw=50,dh=50/ratio; if(dh>35){ dh=35; dw=35*ratio; } const offX=px+(50-dw)/2; const offY=y+(35-dh)/2; doc.addImage(p.data,'JPEG',offX,offY,dw,dh); }catch(e){ console.log('Photo embed skipped'); } doc.setDrawColor(221,209,174); doc.rect(px,y,50,35); px+=55; }); y+=42; } doc.setDrawColor(221,209,174); doc.line(15,y,pageWidth-15,y); y+=6; }); } const pageCount=doc.internal.getNumberOfPages(); for(let i=1;i<=pageCount;i++){ doc.setPage(i); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,145,130); doc.text('Generated by LAYLA Digital Inclinometer.',15,pageHeight-12); doc.text('Page '+i+' of '+pageCount,pageWidth-15,pageHeight-12,{align:'right'}); } const safeName=folder.name.replace(/[^a-z0-9]+/gi,'_'); doc.save('LAYLA_Report_'+safeName+'.pdf'); }
+
+    async function initApp(){ try{ let stored=await idbGet('nd_folders'); if(!stored){ const legacy=localStorage.getItem('nd_folders'); if(legacy){ try{ stored=JSON.parse(legacy); }catch(e){ stored=null; } } } folders=stored||DEFAULT_FOLDERS; folders.forEach(f=>f.measurements.forEach(m=>{ if(m.notes===undefined) m.notes=''; if(m.photos===undefined) m.photos=[]; })); await saveFoldersToStorage(); localStorage.removeItem('nd_folders'); }catch(e){ console.error('Storage init failed, falling back to defaults:',e); folders=DEFAULT_FOLDERS; } updateEngine(0,0); renderFoldersUI(); }
+    window.addEventListener('load',initApp);
+  </script>
+</body>
+</html>
